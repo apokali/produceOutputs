@@ -1,0 +1,30 @@
+#!/bin/bash
+# Returns the expected output given "suite.txt" and the function name
+# "*.args" may or may not be present for each test case
+# Example: ./produceOutputs suite.txt wc 
+# produces expected output for each test case listed in suite.txt
+# as "*.out"
+
+# Exit if the number of arguments is not 2
+# and gives formative message
+usage () {
+	echo "${0} [suite-file program]"
+	exit 1
+}
+
+# Produces output to expected ".out" files
+output () {
+	for case in $(cat ${1}); do
+		if [ -f "${case}.args" ]; then
+			${2} $(cat "${case}.args") > "${case}.out"
+		else
+			${2} > "${case}.out"
+		fi
+	done	
+} 	
+
+if [ $# -ne 2 ]; then 
+	usage
+fi
+
+output $1 $2

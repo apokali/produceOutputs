@@ -1,0 +1,54 @@
+#/!bin/bash
+# Returns the message if the actual output is differnt from the 
+# given output 
+# Examples: ./runSuite suite.txt wc -- gives wrong test information if the expected
+# output of wc is different from the actual output
+# or display nothing if the actual output is the same as the expected output
+# Error message will dispaly the contents of Args, Input, Expected and Actual
+
+# Exit if the number of argument is incorrect
+# and gives formative message
+usage () {
+    echo "${0} [suite-file program]"
+    exit 1
+}
+
+# Compare the actual output and the expected output
+# and display error message if applicable
+run () {
+    for case in $(cat ${1}); do
+        if [ ! -r "${case}.out" ]; then
+            echo "Expected output is unreadable or not exist: ${case}"
+            exit 1
+            fi
+
+        if [ -f "${case}.args" ]; then
+            actout=$(mktemp)
+            ${2} $(cat "${case}.args") > "${actout}"
+        else 
+            actout=$(mktemp)
+            ${2} > "${actout}"
+        fi
+
+        outputmessage=$(diff "${case}.out" "${actout}")
+        if [ "${outputmessage}" != "" ]; then
+            echo "Test failed: ${case}"
+            echo "Args:"
+            if [ -f "${case}.args" ]; then
+                cat "${case}.args"
+            fi
+            echo "Expected:"
+            cat "${case}.out"
+            echo "Actual:"
+            cat "${actout}"
+        fi
+        rm "${actout}"
+    done
+                
+}
+
+if [ $# -ne 2 ]; then
+    usage
+fi
+
+run $1 $2
